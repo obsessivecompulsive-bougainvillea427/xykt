@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# 二进制文件
+*.zip
+
+xykt

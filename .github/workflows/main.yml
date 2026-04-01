@@ -1,0 +1,91 @@
+name: Build and Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, x86_64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build for ${{ matrix.arch }}
+        run: |
+          # 编译 swift 文件
+          swiftc -o xykt xykt.swift \
+          -framework Foundation -framework AppKit -framework CoreImage -framework CoreGraphics -framework Vision
+
+      - name: Sign the binary
+        run: |
+          if [ -n "${{ secrets.APPLE_DEVELOPER_CERT }}" ]; then
+            echo "${{ secrets.APPLE_DEVELOPER_CERT }}" | base64 -d > certificate.p12
+            security create-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+            security default-keychain -s build.keychain
+            security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+            security import certificate.p12 -k build.keychain -P "${{ secrets.CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+            codesign --sign "${{ secrets.CERTIFICATE_COMMON_NAME }}" --deep --force xykt
+            rm certificate.p12
+          else
+            echo "No signing certificate provided, skipping signature"
+          fi
+
+      - name: Package artifact
+        run: |
+          mkdir -p artifacts/xykt-${{ matrix.arch }}
+          # 复制编译后的可执行文件
+          cp xykt artifacts/xykt-${{ matrix.arch }}/xykt
+          # 复制安装脚本
+          cp install.sh artifacts/xykt-${{ matrix.arch }}/
+          # 复制 README.md
+          cp README.md artifacts/xykt-${{ matrix.arch }}/
+          # 复制示例文件夹
+          cp -R examples artifacts/xykt-${{ matrix.arch }}/
+          # 对安装脚本添加执行权限
+          chmod +x artifacts/xykt-${{ matrix.arch }}/install.sh
+          # 创建 zip 包
+          cd artifacts && zip -r xykt-${{ matrix.arch }}.zip xykt-${{ matrix.arch }}/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xykt-${{ matrix.arch }}
+          path: artifacts/xykt-${{ matrix.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Set release version
+        id: set_version
+        run: echo "VERSION=$(date +"%Y.%m.%d.%H%M")" >> $GITHUB_OUTPUT
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.set_version.outputs.VERSION }}
+          name: Release v${{ steps.set_version.outputs.VERSION }}
+          generate_release_notes: true
+          files: |
+            artifacts/xykt-arm64/xykt-arm64.zip
+            artifacts/xykt-x86_64/xykt-x86_64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
